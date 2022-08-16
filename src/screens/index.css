@@ -1,0 +1,80 @@
+.section{
+  margin: 50px 0px;
+}
+
+.button{
+  height: 40px;
+  padding: 10px;
+  margin: 5px 0px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 1s;
+  font-size: 15px;
+  width: fit-content;
+  align-self: center;
+}
+
+.button:hover{
+  background-color: rgb(179, 179, 133);
+  transform: scale(110%);
+}
+
+.textarea{
+  width: 500px;
+  height: 300px;
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.donors{
+  border: 1px solid wheat;
+  /* color: black; */
+  /* background-color: gray; */
+  width: 100%;
+  border-radius: 5px;
+  padding: 10px;
+}
+
+td{
+  font-size: 20px;
+  border: 1px solid black;
+}
+
+thead{
+  font-weight: 700;
+}
+
+tfoot{
+  font-weight: 500;
+}
+
+tr{
+  border: 1px solid black;
+}
+
+input {
+  height: 35px;
+  text-align: center;
+  border-radius: 10px;
+}
+
+.space-out{
+  margin: 10px;
+}
+
+.flex-column{
+  display: flex;
+  flex-direction: column;
+}
+
+.max-width{
+  width: 80%;
+}
+
+.error{
+  color: red;
+  font-size: 15px;
+  margin-top: 25px;
+}
