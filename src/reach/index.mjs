@@ -16,32 +16,18 @@ console.log(`Your address is ${acc.getAddress()}`)
 
 const Alice = {
 
-  donationAlert: (address) => {
-    console.log(`${address} just made a donation`)
+  donationAlert: (address, donation, progress) => {
+    console.log(`${address} just made a donation of ${parseInt(donation)}. Current progress is ${parseInt(progress)}`)
   },
 
   checkBalance: async () => {
     console.log(`Your current balance is ${await getBalance()}`)
   },
-
-  viewProgress: () => {
-    
-  }
 }
-
-const Subscriber = {
-  viewPost: (post) => {
-    console.log('----------NEW POST----------');
-    console.log(post)
-    console.log('----------------------------');
-  }
-}
-
-
 
 const createStream = async () => {
   const isBlogOwner = await ask(
-    `Do you want to create a blog?`,
+    `Do you want to create a crowdfund?`,
     yesno
   );
   const who = isBlogOwner ? 'Owner' : 'Subscriber';
@@ -50,77 +36,51 @@ const createStream = async () => {
 
   let ctc = null;
   if (isBlogOwner) {
-    const subscriptionPrice = await ask('How much is your subscription price?', parseFloat)
+    const expected = await ask('How much is your target for the crowdfund?', parseInt)
     ctc = acc.contract(backend);
-    backend.Creator(ctc, {
-      ...Creator,
-      subscriptionPrice
+    backend.Alice(ctc, {
+      ...Alice,
+      expected
     })
-    console.log('Deploying Blog...');
+    console.log('Deploying Contract...');
     const info = JSON.stringify(await ctc.getInfo(), null, 2);
     console.log('Contract info..')
     console.log(info);
 
-    while(true){
-      const makePost = await ask('Do you want to create post?', yesno)
-      if(makePost){
-        const post = await ask(
-          `Type in a blog post.. (1000 characters max including space)`
-        );
-        const isPremium =  await ask('Is this a premium post?', yesno)
-        await ctc.apis.CreatorActions.post({
-          post,
-          premium: isPremium
-        });
-      }
-      else {
-        const withdraw = await ask('Do you want to withdraw your funds?', yesno)
-        if(!withdraw) continue
-        await ctc.apis.CreatorActions.withdraw()
-      }
-      
-    }
-  } else {
+  } 
+  else {
     const info = await ask(
       `Please paste the contract information of the blog you want to subscribe to:`,
       JSON.parse
     );
     ctc = acc.contract(backend, info);
-    let subscribed = false
-
-    backend.Subscriber(ctc, {
-      viewPost: async (post) => {
-        console.log('----------NEW POST----------');
-        console.log(post)
-        console.log('----------------------------');
-      }
-    });
 
     console.log("...Successfully Connected...")
+
     while(true){
-      if(!subscribed){
-        const subscribe = await ask('Do you want to subscribe for premium', yesno)
-        if(subscribe){
-          const sub = await ctc.apis.SubscriberActions.subscribe();
-          if(sub) {
-            console.log('You are now a premium member')
-            subscribed = true
-          }
-        }
+      try {
+        const { progress, expected } = await ctc.apis.Bob.viewProgress();
+        console.log(`Current progress = ${parseInt(progress)}`)
+        console.log(`Expected = ${parseInt(expected)}`)
+      } catch (error) {
+        const proceed = await ask('Seems the crowdfund target has been achieved. Try again?' ,yesno)
+        if(proceed) continue
+        process.exit()
       }
-      else{
-        const unsubscribe = await ask('Do you want to unsubscribe from premium', yesno)
-        if(unsubscribe){
-          const sub = await ctc.apis.SubscriberActions.unsubscribe();
-          if(sub) {
-            console.log('You are no longer a premium member')
-            subscribed = false
-          }
+
+      const donate = await ask('Do you want to donate?', yesno)
+      if(donate){
+        const donation = await ask('How much do you want to donate?', parseInt)
+        try {
+          await ctc.apis.Bob.donate(donation)
+          console.log(`Successfully donated ${donation}`)
+        } catch (error) {
+          console.log(error)
+          continue
         }
       }
     }
-    }
-  // }
+  }
 };
 
 await createStream();
